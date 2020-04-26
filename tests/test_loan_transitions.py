@@ -517,7 +517,11 @@ def test_item_availability(indexed_loans):
     assert is_item_available_for_checkout(
         item_pid=dict(type="itemid", value="no_loan")
     )
-
+    # item is not available because it has a loan with state ITEM_AT_DESK
+    assert not is_item_available_for_checkout(item_pid="item_at_desk_5")
+    # item is available because the checked-out patron owns the active loan
+    assert is_item_available_for_checkout(
+        item_pid="item_at_desk_5", patron_pid="1")
 
 def test_checkout_item_unavailable_steps(loan_created, params, users):
     """Test checkout attempt on unavailable item."""

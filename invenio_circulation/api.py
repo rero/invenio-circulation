@@ -16,7 +16,7 @@ from invenio_records.api import Record
 
 from .errors import MissingRequiredParameterError, MultipleLoansOnItemError
 from .pidstore.pids import CIRCULATION_LOAN_PID_TYPE
-from .search.api import search_by_pid
+from .search.api import search_by_patron_item_or_document, search_by_pid
 from .utils import str2datetime
 
 
@@ -108,7 +108,7 @@ class Loan(Record):
         self["item_pid"] = item_pid
 
 
-def is_item_available_for_checkout(item_pid):
+def is_item_available_for_checkout(item_pid, patron_pid=None):
     """Return True if the given item is available for loan, False otherwise.
 
     :param item_pid: a dict containing `value` and `type` fields to
@@ -120,6 +120,25 @@ def is_item_available_for_checkout(item_pid):
     )
     if not cfg_item_can_circulate(item_pid):
         return False
+
+    # Some exceptions occurs with specific items and a given patron
+    # For example: ITEM_AT_DESK is available for the patron's loan
+    except_config_exists = ['ITEM_AT_DESK']
+    if patron_pid and except_config_exists:
+        item_exception_loans = 0
+        search = search_by_patron_item_or_document(
+            item_pid=item_pid,
+            patron_pid=patron_pid,
+            filter_states=except_config_exists,
+        )
+        search_result = search.execute()
+        if ES_VERSION[0] >= 7:
+            item_exception_loans = search_result.hits.total.value
+        else:
+            item_exception_loans = search_result.hits.total
+
+        if item_exception_loans == 1:
+            return True
 
     search = search_by_pid(
         item_pid=item_pid,

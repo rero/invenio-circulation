@@ -142,7 +142,9 @@ class Transition(object):
             raise ItemNotAvailableError(item_pid=loan["item_pid"],
                                         transition=self.dest)
 
-        if not is_item_available_for_checkout(loan["item_pid"]):
+        if not is_item_available_for_checkout(
+                loan['item_pid'],
+                patron_pid=loan['patron_pid']):
             raise ItemNotAvailableError(
                 item_pid=loan["item_pid"], transition=self.dest
             )
