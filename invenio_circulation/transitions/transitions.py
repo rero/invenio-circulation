@@ -208,7 +208,7 @@ class CreatedToPending(Transition):
             permission_factory=permission_factory,
             **kwargs
         )
-        self.assign_item = kwargs.get("assign_item", True)
+        self.assign_item = kwargs.get("assign_item", False)
 
     @check_request_on_document
     def before(self, loan, **kwargs):
@@ -297,7 +297,7 @@ class ItemOnLoanToItemReturned(Transition):
             permission_factory=permission_factory,
             **kwargs
         )
-        self.assign_item = kwargs.get("assign_item", True)
+        self.assign_item = kwargs.get("assign_item", False)
 
     @ensure_same_item
     def before(self, loan, **kwargs):
@@ -335,7 +335,7 @@ class ItemInTransitHouseToItemReturned(Transition):
             permission_factory=permission_factory,
             **kwargs
         )
-        self.assign_item = kwargs.get("assign_item", True)
+        self.assign_item = kwargs.get("assign_item", False)
 
     @ensure_same_item
     def before(self, loan, **kwargs):
