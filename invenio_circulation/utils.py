@@ -92,8 +92,12 @@ def can_be_requested(loan):
     )
 
 
-def get_default_loan_duration(loan):
-    """Return a default loan duration in timedelta."""
+def get_default_loan_duration(loan, initial_loan):
+    """Return a default loan duration in timedelta.
+
+    :param loan: the current loan to extend, updated with transition params
+    :param initial_loan: the loan before applying transition params
+    """
     raise NotImplementedConfigurationError(
         config_variable="CIRCULATION_POLICIES.checkout.duration_default"
     )
@@ -106,8 +110,12 @@ def is_loan_duration_valid(loan):
     )
 
 
-def get_default_extension_duration(loan):
-    """Return a default extension duration in timedelta."""
+def get_default_extension_duration(loan, initial_loan):
+    """Return a default extension duration in timedelta.
+
+    :param loan: the current loan to extend, updated with transition params
+    :param initial_loan: the loan before applying transition params
+    """
     raise NotImplementedConfigurationError(
         config_variable="CIRCULATION_POLICIES.extension.duration_default"
     )

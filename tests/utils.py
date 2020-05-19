@@ -59,12 +59,12 @@ def item_location_retriever(item_pid):
     return ""
 
 
-def get_default_loan_duration(loan):
+def get_default_loan_duration(loan, initial_loan):
     """Return a default loan duration in timedelta."""
     return timedelta(days=30)
 
 
-def get_default_extension_duration(loan):
+def get_default_extension_duration(loan, initial_loan):
     """Return a default extension duration in timedelta."""
     return timedelta(days=30)
 

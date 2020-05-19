@@ -66,7 +66,7 @@ def ensure_same_document(f):
 
 
 def ensure_required_params(f):
-    """Decorate to ensure that all required parameters has been passed."""
+    """Decorator to ensure that all required parameters has been passed."""
     def inner(self, loan, **kwargs):
         missing = [p for p in self.REQUIRED_PARAMS if p not in kwargs]
         if missing:
@@ -84,7 +84,7 @@ def ensure_required_params(f):
 
 
 def has_permission(f):
-    """Decorate to check the transition should be manually triggered."""
+    """Decorator to check the transition should be manually triggered."""
     def inner(self, loan, **kwargs):
         if self.permission_factory and not self.permission_factory(loan).can():
             raise InvalidPermissionError(
@@ -95,7 +95,7 @@ def has_permission(f):
 
 
 def check_trigger(f):
-    """Decorate to check the transition should be manually triggered."""
+    """Decorator to check the transition should be manually triggered."""
     def inner(self, loan, **kwargs):
         if kwargs.get("trigger", "next") != self.trigger:
             msg = "The transition with trigger '{}' does not exist."
@@ -124,12 +124,11 @@ class Transition(object):
         self.src = src
         self.dest = dest
         self.trigger = trigger
-        self.permission_factory = (
-            permission_factory or
-            current_app.config[
-                "CIRCULATION_LOAN_TRANSITIONS_DEFAULT_PERMISSION_FACTORY"
-            ]
-        )
+        self.initial_loan = None
+        default_perm = current_app.config[
+            "CIRCULATION_LOAN_TRANSITIONS_DEFAULT_PERMISSION_FACTORY"
+        ]
+        self.permission_factory = permission_factory or default_perm
         self.validate_transition_states()
 
     def _check_item_before_availability(self, loan):
@@ -139,8 +138,9 @@ class Transition(object):
             raise TransitionConstraintsViolationError(description=msg)
 
         if not current_app.config["CIRCULATION_ITEM_EXISTS"](loan["item_pid"]):
-            raise ItemNotAvailableError(item_pid=loan["item_pid"],
-                                        transition=self.dest)
+            raise ItemNotAvailableError(
+                item_pid=loan["item_pid"], transition=self.dest
+            )
 
     def ensure_item_is_available_for_checkout(self, loan):
         """Validate that an item is available."""
@@ -155,8 +155,8 @@ class Transition(object):
         """Ensure that source and destination states are valid."""
         states = current_app.config["CIRCULATION_LOAN_TRANSITIONS"].keys()
         if not all([self.src in states, self.dest in states]):
-            msg = "Source state '{0}' or destination state '{1}' not in [{2}]"\
-                .format(self.src, self.dest, states)
+            msg = "Source state '{0}' or destination state '{1}' " \
+                  "not in [{2}]".format(self.src, self.dest, states)
             raise InvalidLoanStateError(description=msg)
 
     def _date_fields2datetime(self, kwargs):
@@ -168,7 +168,7 @@ class Transition(object):
 
     def before(self, loan, **kwargs):
         """Validate input, evaluate conditions and raise if failed."""
-        self.prev_loan = copy.deepcopy(loan)
+        self.initial_loan = copy.deepcopy(loan)
         loan.update(kwargs)
         loan.setdefault("transaction_date", arrow.utcnow())
 
@@ -188,7 +188,7 @@ class Transition(object):
 
     def after(self, loan):
         """Commit record and index."""
-        self.prev_loan.date_fields2str()
+        self.initial_loan.date_fields2str()
         loan.date_fields2str()
 
         loan.commit()
@@ -196,5 +196,8 @@ class Transition(object):
         current_circulation.loan_indexer().index(loan)
 
         loan_state_changed.send(
-            self, prev_loan=self.prev_loan, loan=loan, trigger=self.trigger
+            self,
+            initial_loan=self.initial_loan,
+            loan=loan,
+            trigger=self.trigger,
         )

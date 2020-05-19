@@ -23,7 +23,7 @@ from ..transitions.base import Transition
 from ..transitions.conditions import is_same_location
 
 
-def _ensure_valid_loan_duration(loan):
+def _ensure_valid_loan_duration(loan, initial_loan):
     """Validate start and end dates for a loan."""
     loan.setdefault("start_date", loan["transaction_date"])
 
@@ -31,7 +31,7 @@ def _ensure_valid_loan_duration(loan):
         get_loan_duration = current_app.config["CIRCULATION_POLICIES"][
             "checkout"
         ]["duration_default"]
-        duration = get_loan_duration(loan)
+        duration = get_loan_duration(loan, initial_loan)
         loan["end_date"] = loan["start_date"] + duration
 
     is_duration_valid = current_app.config["CIRCULATION_POLICIES"]["checkout"][
@@ -68,9 +68,12 @@ def ensure_same_item(f):
             wrong_pid_type = loan.get("item_pid") and \
                 item_pid["type"] != loan["item_pid"]["type"]
             if wrong_pid_value or wrong_pid_type:
-                msg = "Cannot change item '{0}:{1}' while performing an " \
-                      "action on this loan" \
-                    .format(item_pid["type"], item_pid["value"])
+                msg = (
+                    "Cannot change item '{0}:{1}' while performing an "
+                    "action on this loan".format(
+                        item_pid["type"], item_pid["value"]
+                    )
+                )
                 raise ItemDoNotMatchError(description=msg)
 
         return f(self, loan, **kwargs)
@@ -90,36 +93,6 @@ def _update_document_pending_request_for_item(item_pid, **kwargs):
         pending_loan.commit()
         db.session.commit()
         current_circulation.loan_indexer().index(pending_loan)
-
-
-def _ensure_valid_extension(loan):
-    """Validate end dates for a extended loan."""
-    extension_count = loan.get("extension_count", 0)
-    extension_count += 1
-
-    get_extension_max_count_func = current_app.config["CIRCULATION_POLICIES"][
-        "extension"
-    ]["max_count"]
-    extension_max_count = get_extension_max_count_func(loan)
-    if extension_count > extension_max_count:
-        raise LoanMaxExtensionError(
-            loan_pid=loan["pid"], extension_count=extension_max_count
-        )
-    loan["extension_count"] = extension_count
-
-    get_extension_duration_func = current_app.config["CIRCULATION_POLICIES"][
-        "extension"
-    ]["duration_default"]
-    duration = get_extension_duration_func(loan)
-
-    should_extend_from_end_date = current_app.config["CIRCULATION_POLICIES"][
-        "extension"
-    ]["from_end_date"]
-    if not should_extend_from_end_date:
-        # extend from the transaction_date instead
-        loan["end_date"] = loan["transaction_date"]
-
-    loan["end_date"] += duration
 
 
 def _ensure_same_location(item_pid, location_pid, destination, error_msg):
@@ -159,7 +132,7 @@ class ToItemOnLoan(Transition):
 
         _ensure_default_pickup_location(loan, kwargs)
 
-        _ensure_valid_loan_duration(loan)
+        _ensure_valid_loan_duration(loan, self.initial_loan)
 
 
 class ItemAtDeskToItemOnLoan(Transition):
@@ -173,7 +146,7 @@ class ItemAtDeskToItemOnLoan(Transition):
 
         _ensure_default_pickup_location(loan, kwargs)
 
-        _ensure_valid_loan_duration(loan)
+        _ensure_valid_loan_duration(loan, self.initial_loan)
 
     def ensure_at_desk_item_is_available_for_checkout(self, loan):
         """Validate that an item at desk is available for checkout."""
@@ -215,7 +188,8 @@ def check_request_on_document(f):
             # if no pickup location was specified in the request,
             # assign a default one
             kwargs["pickup_location_pid"] = _get_item_location(
-                kwargs["item_pid"])
+                kwargs["item_pid"]
+            )
 
         return f(self, loan, **kwargs)
     return inner
@@ -284,11 +258,43 @@ class PendingToItemInTransitPickup(Transition):
 class ItemOnLoanToItemOnLoan(Transition):
     """Extend action to perform a item loan extension."""
 
+    def update_extension_count(self, loan):
+        """Check number of extensions and update it."""
+        extension_count = loan.get("extension_count", 0)
+        extension_count += 1
+
+        get_extension_max_count_func = current_app.config[
+            "CIRCULATION_POLICIES"
+        ]["extension"]["max_count"]
+        extension_max_count = get_extension_max_count_func(loan)
+        if extension_count > extension_max_count:
+            raise LoanMaxExtensionError(
+                loan_pid=loan["pid"], extension_count=extension_max_count
+            )
+        loan["extension_count"] = extension_count
+
+    def update_loan_end_date(self, loan):
+        """Update the end date of the extended loan."""
+        get_extension_duration_func = current_app.config[
+            "CIRCULATION_POLICIES"
+        ]["extension"]["duration_default"]
+        duration = get_extension_duration_func(loan, self.initial_loan)
+
+        should_extend_from_end_date = current_app.config[
+            "CIRCULATION_POLICIES"
+        ]["extension"]["from_end_date"]
+        if not should_extend_from_end_date:
+            # extend from the transaction_date instead
+            loan["end_date"] = loan["transaction_date"]
+
+        loan["end_date"] += duration
+
     @ensure_same_item
     def before(self, loan, **kwargs):
         """Validate extension action."""
         super().before(loan, **kwargs)
-        _ensure_valid_extension(loan)
+        self.update_extension_count(loan)
+        self.update_loan_end_date(loan)
 
 
 class ItemOnLoanToItemInTransitHouse(Transition):
