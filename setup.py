@@ -16,21 +16,20 @@ readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
 tests_require = [
-    'check-manifest>=0.25',
-    'coverage>=4.4',
+    'check-manifest>=0.35',
+    'coverage>=4.5.3',
     'isort>=4.3.11',
-    'invenio-app>=1.0.4',
-    'invenio-jsonschemas>=1.0.0',
+    'invenio-app>=1.2.3',
+    'invenio-jsonschemas>=1.0.1',
     'mock>=1.3.0',
-    'pydocstyle>=1.0.0',
-    'pytest-cache>=1.0',
+    'pydocstyle>=3.0.0',
     'pytest-cov>=2.7.1',
     'pytest-pep8>=1.0.6',
-    'pytest>=3.8.1',
-    'pytest-invenio>=1.2.0',
+    'pytest>=4.6.4,<5.0.0',
+    'pytest-invenio>=1.2.1',
 ]
 
-invenio_search_version = '1.2.1'
+invenio_search_version = '1.2.3'
 invenio_db_version = '1.0.4'
 
 extras_require = {
@@ -44,7 +43,7 @@ extras_require = {
         'invenio-search[elasticsearch7]>={}'.format(invenio_search_version),
     ],
     'docs': [
-        'Sphinx>=1.5.1'
+        'Sphinx>=1.8.4,<3'
     ],
     'mysql': [
         'invenio-db[mysql,versioning]>={}'.format(invenio_db_version)
@@ -75,13 +74,12 @@ setup_requires = ['Babel>=1.3', 'pytest-runner>=2.6.2']
 
 install_requires = [
     'arrow>=0.15.0',
-    'Flask-BabelEx>=0.9.3',
-    'invenio-base>=1.0.1',
+    'invenio-base>=1.2.1',
     'invenio-access>=1.3.1',
     'invenio-logging>=1.2.1',
-    'invenio-pidstore>=1.0.0',
-    'invenio-records-rest>=1.6.1',
-    'invenio-jsonschemas>=1.0.0',
+    'invenio-pidstore>=1.1.0',
+    'invenio-records-rest>=1.6.4',
+    'invenio-jsonschemas>=1.0.1',
 ]
 
 packages = find_packages()
@@ -153,8 +151,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Development Status :: 1 - Planning',

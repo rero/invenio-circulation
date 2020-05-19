@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2018-2019 CERN.
-# Copyright (C) 2018-2019 RERO.
+# Copyright (C) 2018-2020 CERN.
+# Copyright (C) 2018-2020 RERO.
 #
 # Invenio-Circulation is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,8 +10,6 @@ dist: trusty
 
 notifications:
   email: false
-
-sudo: false
 
 language: python
 
@@ -29,8 +27,8 @@ services:
 env:
   global:
     - ES5_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.16.tar.gz"
-    - ES6_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.2.tar.gz"
-    - ES7_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.3.0-linux-x86_64.tar.gz"
+    - ES6_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-6.8.2.tar.gz"
+    - ES7_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-7.3.0-linux-x86_64.tar.gz"
     - ES_HOST=127.0.0.1
   matrix:
     - REQUIREMENTS=lowest EXTRAS=all,sqlite,elasticsearch5 ES_URL=$ES5_DOWNLOAD_URL
@@ -40,7 +38,7 @@ env:
     - REQUIREMENTS=devel EXTRAS=all,sqlite,elasticsearch7 ES_URL=$ES7_DOWNLOAD_URL
 
 python:
-  - "3.5"
+  - "3.6"
 
 before_install:
   - "mkdir /tmp/elasticsearch"

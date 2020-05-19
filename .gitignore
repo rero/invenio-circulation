@@ -62,4 +62,3 @@ target/
 .*.sw?
 
 .history
-examples/app.db
