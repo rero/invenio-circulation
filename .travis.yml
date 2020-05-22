@@ -70,7 +70,7 @@ deploy:
   distributions: sdist bdist_wheel
   on:
     condition: $DEPLOY = true
-    python: '3.5'
+    python: '3.6'
     repo: inveniosoftware/invenio-circulation
     tags: true
   password:

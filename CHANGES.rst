@@ -7,6 +7,12 @@
 Changes
 =======
 
+Version 1.0.0a23 (released 2020-05-22)
+
+- renames signals parameter from `prev_loan` to `initial_loan`
+- adds an extra parameter `initial_loan` to the default duration functions
+  in checkout policies
+
 Version 1.0.0a22 (released 2020-05-22)
 
 - adds additional checks when transitioning loans from and to Item at Desk
