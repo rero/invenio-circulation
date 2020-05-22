@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2018-2019 CERN.
-# Copyright (C) 2018-2019 RERO.
+# Copyright (C) 2018-2020 CERN.
+# Copyright (C) 2018-2020 RERO.
 #
 # Invenio-Circulation is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -14,4 +14,4 @@ and parsed by ``setup.py``.
 
 from __future__ import absolute_import, print_function
 
-__version__ = '1.0.0a21'
+__version__ = '1.0.0a22'

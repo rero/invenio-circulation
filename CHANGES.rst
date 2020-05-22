@@ -1,24 +1,26 @@
 ..
-    Copyright (C) 2018-2019 CERN.
-    Copyright (C) 2018-2019 RERO.
+    Copyright (C) 2018-2020 CERN.
+    Copyright (C) 2018-2020 RERO.
     Invenio-Circulation is free software; you can redistribute it and/or modify it
     under the terms of the MIT License; see LICENSE file for more details.
 
 Changes
 =======
 
-Version 1.0.0a21 (released 2020-01-23)
+Version 1.0.0a22 (released 2020-05-22)
 
+- adds additional checks when transitioning loans from and to Item at Desk
+- removes example app and updates Invenio modules dependencies
+
+Version 1.0.0a21 (released 2020-01-23)
 
 - introduces `pid_type` for `item_pid` to uniquely identify an Item record
 - changes methods that were expecting `item_pid`
 - removed unused view circulation/items to retrieve the item from the loan
 
-
 Version 1.0.0a20 (released 2019-11-01)
 
 - adds a JSON resolver for the document of the loan
-
 
 Version 1.0.0a19 (released 2019-09-27)
 
