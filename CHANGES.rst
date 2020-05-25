@@ -7,6 +7,11 @@
 Changes
 =======
 
+Version 1.0.0a24 (released 2020-05-25)
+
+- fixes the way the default module configuration is defined to allow
+  overriding it from the Invenio app
+
 Version 1.0.0a23 (released 2020-05-22)
 
 - renames signals parameter from `prev_loan` to `initial_loan`
