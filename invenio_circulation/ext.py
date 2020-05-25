@@ -38,15 +38,19 @@ class InvenioCirculation(object):
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.config.setdefault("RECORDS_REST_ENDPOINTS", {})
 
-        app.config["CIRCULATION_REST_ENDPOINTS"].setdefault("loanid", {})[
-            "links_factory_imp"
-        ] = app.config["CIRCULATION_LOAN_LINKS_FACTORY"]
-
-        app.config["RECORDS_REST_ENDPOINTS"].update(
-            app.config["CIRCULATION_REST_ENDPOINTS"]
+        # init CIRCULATION_REST_ENDPOINTS
+        obj = app.config["CIRCULATION_REST_ENDPOINTS"].setdefault(
+            CIRCULATION_LOAN_PID_TYPE, {}
         )
+        obj["links_factory_imp"] = app.config["CIRCULATION_LOAN_LINKS_FACTORY"]
+
+        # update RECORDS_REST_ENDPOINTS if not already set
+        app.config.setdefault("RECORDS_REST_ENDPOINTS", {})
+        app.config["RECORDS_REST_ENDPOINTS"].setdefault(
+            CIRCULATION_LOAN_PID_TYPE, obj
+        )
+
         app.extensions["invenio-circulation"] = self
 
     def init_config(self, app):
@@ -72,28 +76,28 @@ class InvenioCirculation(object):
 
     def _get_endpoint_config(self):
         """Return endpoint configuration for circulation."""
-        endpoints = self.app.config.get('CIRCULATION_REST_ENDPOINTS', [])
+        endpoints = current_app.config.get("RECORDS_REST_ENDPOINTS", [])
         return endpoints.get(CIRCULATION_LOAN_PID_TYPE, {})
 
     @cached_property
     def loan_record_cls(self):
         """Return the current Loan record class."""
         circ_endpoint = self._get_endpoint_config()
-        _cls = circ_endpoint.get('record_class', Loan)
+        _cls = circ_endpoint.get("record_class", Loan)
         return obj_or_import_string(_cls)
 
     @cached_property
     def loan_search_cls(self):
         """Return the current Loan search instance."""
         circ_endpoint = self._get_endpoint_config()
-        _cls = circ_endpoint.get('search_class', LoansSearch)
+        _cls = circ_endpoint.get("search_class", LoansSearch)
         return obj_or_import_string(_cls)
 
     @cached_property
     def loan_indexer(self):
         """Return the current Loan indexer instance."""
         circ_endpoint = self._get_endpoint_config()
-        _cls = circ_endpoint.get('indexer_class', RecordIndexer)
+        _cls = circ_endpoint.get("indexer_class", RecordIndexer)
         return obj_or_import_string(_cls)
 
 
