@@ -34,7 +34,7 @@ from .utils import can_be_requested, document_exists, document_ref_builder, \
     get_default_loan_duration, is_loan_duration_valid, item_can_circulate, \
     item_exists, item_location_retriever, item_ref_builder, patron_exists, \
     patron_ref_builder, transaction_location_validator, \
-    transaction_user_validator
+    transaction_user_validator, validate_item_pickup_transaction_locations
 
 
 @pytest.fixture(scope="module")
@@ -60,6 +60,8 @@ def app_config(app_config):
         transaction_location_validator
     app_config["CIRCULATION_TRANSACTION_USER_VALIDATOR"] = \
         transaction_user_validator
+    app_config["CIRCULATION_LOAN_LOCATIONS_VALIDATION"] = \
+        validate_item_pickup_transaction_locations
     app_config["CIRCULATION_DOCUMENT_RETRIEVER_FROM_ITEM"] = \
         lambda x: "document_pid"
     app_config["CIRCULATION_POLICIES"] = dict(

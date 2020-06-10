@@ -10,10 +10,41 @@
 
 import pytest
 
-from invenio_circulation.errors import NoValidTransitionAvailableError
+from invenio_circulation.errors import NotImplementedConfigurationError, \
+    NoValidTransitionAvailableError
 from invenio_circulation.proxies import current_circulation
+from invenio_circulation.utils import \
+    validate_item_pickup_transaction_locations
 
 from .helpers import SwappedConfig
+
+
+def test_validate_pickup_transaction_locations_not_implemented(
+        loan_created, params):
+    """Test transition from PENDING to ITEM_AT_DESK.
+
+    when the method validate_item_pickup_transaction_locations is not
+    implemented, a NotImplementedConfigurationError is raised.
+    """
+    loan = current_circulation.circulation.trigger(
+        loan_created,
+        **dict(
+            params,
+            trigger="request",
+            pickup_location_pid="pickup_location_pid",
+        )
+    )
+    assert loan["state"] == "PENDING"
+
+    with pytest.raises(NotImplementedConfigurationError):
+        with SwappedConfig(
+            "CIRCULATION_LOAN_LOCATIONS_VERIFICATIONS",
+                validate_item_pickup_transaction_locations(
+                    loan, "ITEM_AT_DESK")
+        ):
+            loan = current_circulation.circulation.trigger(
+                loan, **dict(params)
+            )
 
 
 def test_validate_item_at_desk(loan_created, params):

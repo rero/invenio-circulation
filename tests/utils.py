@@ -89,3 +89,13 @@ def transaction_location_validator(transaction_location_pid):
 def transaction_user_validator(transaction_user_pid):
     """Validate that the given transaction user PID is valid."""
     return transaction_user_pid == "user_pid"
+
+
+def validate_item_pickup_transaction_locations(loan, destination, **kwargs):
+    """Validate the loan item, pickup and transaction locations."""
+    pickup_location_pid = loan["pickup_location_pid"]
+    item_location_pid = kwargs["item_location_pid"]
+    if destination == "ITEM_AT_DESK":
+        return pickup_location_pid == item_location_pid
+    elif destination == "ITEM_IN_TRANSIT_FOR_PICKUP":
+        return pickup_location_pid != item_location_pid
