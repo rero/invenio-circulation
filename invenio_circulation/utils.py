@@ -153,3 +153,18 @@ def transaction_user_validator(transaction_user_pid):
 def str2datetime(str_date):
     """Parse string date with timezone and return a datetime object."""
     return arrow.get(str_date).to('utc')
+
+
+def validate_item_pickup_transaction_locations(loan, destination, **kwargs):
+    """Validate the loan item, pickup and transaction locations.
+
+    This also allow for extra validation if needed at the library level.
+
+    :param loan: the loan
+    :param destination: the destination of the loan
+
+    :return: False if validation is not possible, otherwise True
+    """
+    raise NotImplementedConfigurationError(
+        config_variable="CIRCULATION_LOAN_LOCATIONS_VALIDATION"
+    )

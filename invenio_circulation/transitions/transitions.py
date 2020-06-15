@@ -109,6 +109,19 @@ def _ensure_not_same_location(item_pid, location_pid, destination, error_msg):
         raise TransitionConditionsFailedError(description=error_msg)
 
 
+def _validate_item_pickup_transaction_locations(loan, destination, **kwargs):
+    """Validate the loan item, pickup and transaction locations."""
+    item_location_pid = \
+        current_app.config["CIRCULATION_ITEM_LOCATION_RETRIEVER"](
+            loan["item_pid"])
+    kwargs["item_location_pid"] = item_location_pid
+    validate_item_pickup_transaction_locations = current_app.config[
+        "CIRCULATION_LOAN_LOCATIONS_VALIDATION"]
+    if not validate_item_pickup_transaction_locations(
+            loan, destination, **kwargs):
+        raise TransitionConditionsFailedError()
+
+
 def _get_item_location(item_pid):
     """Retrieve Item location based on PID."""
     return current_app.config["CIRCULATION_ITEM_LOCATION_RETRIEVER"](item_pid)
@@ -230,12 +243,8 @@ class PendingToItemAtDesk(Transition):
 
         # check if a request on document has no item attached
         _ensure_item_attached_to_loan(loan)
-        _ensure_same_location(
-            loan["item_pid"],
-            loan["pickup_location_pid"],
-            self.dest,
-            error_msg="Pickup is not at the same library. ",
-        )
+        # validate the item, pickup and transaction locations of the loan
+        _validate_item_pickup_transaction_locations(loan, self.dest, **kwargs)
 
 
 class PendingToItemInTransitPickup(Transition):
@@ -247,12 +256,8 @@ class PendingToItemInTransitPickup(Transition):
 
         # check if a request on document has no item attached
         _ensure_item_attached_to_loan(loan)
-        _ensure_not_same_location(
-            loan["item_pid"],
-            loan["pickup_location_pid"],
-            self.dest,
-            error_msg="Pickup is at the same library. ",
-        )
+        # validate the item, pickup and transaction locations of the loan
+        _validate_item_pickup_transaction_locations(loan, self.dest, **kwargs)
 
 
 class ItemOnLoanToItemOnLoan(Transition):
@@ -309,11 +314,8 @@ class ItemOnLoanToItemInTransitHouse(Transition):
             loan["item_pid"],
             loan["transaction_location_pid"],
             self.dest,
-            error_msg="Item should be returned (already in house). ",
+            error_msg="Item should be returned (already in house).",
         )
-
-        # set end loan date as transaction date when completing loan
-        loan["end_date"] = loan["transaction_date"]
 
 
 class ItemOnLoanToItemReturned(Transition):
@@ -336,7 +338,6 @@ class ItemOnLoanToItemReturned(Transition):
     def before(self, loan, **kwargs):
         """Validate check-in action."""
         super().before(loan, **kwargs)
-
         _ensure_same_location(
             loan["item_pid"],
             loan["transaction_location_pid"],
